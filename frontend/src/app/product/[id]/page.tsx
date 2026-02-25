@@ -5,6 +5,8 @@ import { ChevronLeft, Share2, Heart, ShieldCheck, Truck, RotateCcw } from "lucid
 import Link from "next/link";
 import ARTryOn from "@/components/ar/ARTryOn";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     let product;
