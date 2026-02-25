@@ -13,11 +13,11 @@ venv.bak/
 # Django
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# db.sqlite3
+# db.sqlite3-journal
 
 # Media / Uploads
-media/
+# media/
 build/
 develop-eggs/
 dist/
