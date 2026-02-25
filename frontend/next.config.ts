@@ -34,11 +34,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
-      // Configuración para el backend desplegado en producción (ej. Render, Railway)
-      // {
-      //   protocol: 'https',
-      //   hostname: 'tu-backend-produccion.com',
-      // },
+      {
+        protocol: 'https',
+        hostname: 'ar-vision-store.onrender.com',
+      },
     ],
   },
   async rewrites() {
