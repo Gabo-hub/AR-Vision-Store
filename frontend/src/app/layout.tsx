@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import { cn } from "@/lib/utils";
 import Script from "next/script";
+import { LoginModalProvider } from "@/components/LoginModalProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,15 +28,19 @@ export default function RootLayout({
         />
       </head>
       <body className={cn(inter.className, "min-h-screen bg-slate-50/50 antialiased")}>
-        <Header />
-        <main>{children}</main>
-        <footer className="border-t bg-white py-12">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-sm text-gray-500">
-              © 2024 OpticAR. Todos los derechos reservados.
-            </p>
-          </div>
-        </footer>
+        <AuthProvider>
+          <LoginModalProvider>
+            <Header />
+            <main>{children}</main>
+            <footer className="border-t bg-white py-12">
+              <div className="container mx-auto px-4 text-center">
+                <p className="text-sm text-gray-500">
+                  © 2024 OpticAR. Todos los derechos reservados.
+                </p>
+              </div>
+            </footer>
+          </LoginModalProvider>
+        </AuthProvider>
       </body>
     </html>
   );
