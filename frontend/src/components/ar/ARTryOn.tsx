@@ -6,6 +6,7 @@ import { Camera, X, Box, Info, Settings2 } from "lucide-react";
 import { Glasses } from "@/types/glasses";
 import FaceTracker from "./FaceTracker";
 import { cn, getProxyMediaUrl } from "@/lib/utils";
+import OpenCVFaceTracker from "./OpenCVFaceTracker";
 
 interface ARTryOnProps {
     product: Glasses;
@@ -119,7 +120,7 @@ export default function ARTryOn({ product }: ARTryOnProps) {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <div className="flex justify-between text-[11px] font-medium text-gray-300"><span>Escala (Tamaño)</span> <span>{offsets.scale.toFixed(2)}</span></div>
-                                    <input type="range" min="0.01" max="10" step="0.01" value={offsets.scale} onChange={(e) => setOffsets({ ...offsets, scale: parseFloat(e.target.value) })} className="w-full accent-blue-500" />
+                                    <input type="range" min="0.01" max="25" step="0.05" value={offsets.scale} onChange={(e) => setOffsets({ ...offsets, scale: parseFloat(e.target.value) })} className="w-full accent-blue-500" />
                                 </div>
                             </div>
                             <div className="mt-4 pt-4 border-t border-white/10 text-[10px] text-gray-400 leading-relaxed text-center">
