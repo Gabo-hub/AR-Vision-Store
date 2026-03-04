@@ -58,100 +58,103 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div 
-                className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 backdrop-blur-md"
+                className="absolute inset-0 bg-[#2d2926]/60 backdrop-blur-sm"
                 onClick={onClose}
             />
             
-            <div className="relative w-full max-w-md mx-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl" />
+            <div className="relative w-full max-w-md">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#e86f50]/10 to-[#f4ede8]/10 rounded-3xl blur-3xl" />
                 
-                <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
+                <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e86f50] to-[#f4a574]" />
                     
                     <button 
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-all duration-300"
+                        className="absolute top-5 right-5 p-2 text-[#8a8582] hover:text-[#2d2926] hover:bg-[#f4ede8] rounded-full transition-all duration-300"
                     >
                         <X className="w-5 h-5" />
                     </button>
 
                     <div className="p-8 pt-10">
                         <div className="text-center mb-8">
-                            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                                Bienvenido
+                            <div className="w-16 h-16 bg-[#fef6f4] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-3xl">👋</span>
+                            </div>
+                            <h2 className="font-display text-3xl font-bold text-[#2d2926] mb-2">
+                                Hola, bienvenido
                             </h2>
-                            <p className="text-slate-400 text-sm">
+                            <p className="text-[#8a8582]">
                                 Inicia sesión para continuar
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             {error && (
-                                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                                <div className="p-4 rounded-xl bg-[#fef6f4] border border-[#fedfd7] text-[#c44d2e] text-sm text-center">
                                     {error}
                                 </div>
                             )}
                             
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                <label className="text-sm font-bold text-[#5c5552]">
                                     Usuario
                                 </label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Mail className="h-4 w-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                                        <Mail className="h-5 w-5 text-[#8a8582] group-focus-within:text-[#e86f50] transition-colors" />
                                     </div>
                                     <input
                                         type="text"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
+                                        className="w-full pl-12 pr-4 py-3.5 bg-[#faf8f5] border border-[#e8e3de] rounded-2xl text-[#2d2926] placeholder-[#8a8582] focus:outline-none focus:border-[#e86f50] focus:ring-2 focus:ring-[#e86f50]/10 transition-all duration-300"
                                         placeholder="tu usuario"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-medium text-slate-300 uppercase tracking-wider">
+                                <label className="text-sm font-bold text-[#5c5552]">
                                     Contraseña
                                 </label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Lock className="h-4 w-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                                        <Lock className="h-5 w-5 text-[#8a8582] group-focus-within:text-[#e86f50] transition-colors" />
                                     </div>
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        className="w-full pl-11 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
+                                        className="w-full pl-12 pr-14 py-3.5 bg-[#faf8f5] border border-[#e8e3de] rounded-2xl text-[#2d2926] placeholder-[#8a8582] focus:outline-none focus:border-[#e86f50] focus:ring-2 focus:ring-[#e86f50]/10 transition-all duration-300"
                                         placeholder="••••••••"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#8a8582] hover:text-[#2d2926] transition-colors"
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-4 w-4" />
+                                            <EyeOff className="h-5 w-5" />
                                         ) : (
-                                            <Eye className="h-4 w-4" />
+                                            <Eye className="h-5 w-5" />
                                         )}
                                     </button>
                                 </div>
                             </div>
 
                             <div className="flex items-center justify-between text-sm">
-                                <label className="flex items-center gap-2 cursor-pointer">
+                                <label className="flex items-center gap-2.5 cursor-pointer">
                                     <input 
                                         type="checkbox" 
-                                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/20 focus:ring-offset-0"
+                                        className="w-4 h-4 rounded border-[#e8e3de] bg-[#faf8f5] text-[#e86f50] focus:ring-[#e86f50]/20 focus:ring-offset-0"
                                     />
-                                    <span className="text-slate-400">Recordarme</span>
+                                    <span className="text-[#8a8582]">Recordarme</span>
                                 </label>
-                                <button type="button" className="text-blue-400 hover:text-blue-300 transition-colors">
+                                <button type="button" className="text-[#e86f50] hover:text-[#d85f40] font-medium transition-colors">
                                     ¿Olvidaste tu contraseña?
                                 </button>
                             </div>
@@ -159,7 +162,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-3.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                                className="w-full py-3.5 px-6 bg-[#e86f50] hover:bg-[#d85f40] text-white font-bold rounded-2xl shadow-lg shadow-[#e86f50]/20 hover:shadow-[#e86f50]/30 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                             >
                                 {isLoading ? (
                                     <span className="flex items-center justify-center gap-2">
@@ -175,18 +178,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                             </button>
                         </form>
 
-                        <div className="mt-8 pt-6 border-t border-slate-700/50">
-                            <p className="text-center text-slate-400 text-sm">
+                        <div className="mt-8 pt-6 border-t border-[#e8e3de]">
+                            <p className="text-center text-[#8a8582]">
                                 ¿No tienes cuenta?{' '}
-                                <button className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                                <button className="text-[#e86f50] hover:text-[#d85f40] font-bold transition-colors">
                                     Regístrate gratis
                                 </button>
                             </p>
                         </div>
                     </div>
 
-                    <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl" />
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl" />
+                    <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-[#e86f50]/10 rounded-full blur-3xl" />
+                    <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#f4ede8] rounded-full blur-3xl" />
                 </div>
             </div>
         </div>
