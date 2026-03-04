@@ -1,6 +1,6 @@
 import { getProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Camera } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
@@ -47,59 +47,59 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative overflow-hidden bg-white py-24 lg:py-36">
+      <section className="relative overflow-hidden bg-white py-16 md:py-24 lg:py-36">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#fef6f4] via-white to-white" />
-        <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-[#e86f50]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#e86f50]/5 rounded-full blur-3xl" />
+        <div className="absolute top-10 md:top-20 right-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#e86f50]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-[#e86f50]/5 rounded-full blur-3xl" />
         
-        <div className="container relative mx-auto px-4">
+        <div className="container relative mx-auto px-3 md:px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#fef6f4] px-5 py-2 text-sm font-bold text-[#e86f50] mb-8 animate-fade-in-up opacity-0">
-              <Sparkles className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#fef6f4] px-4 py-2 md:px-5 md:py-2 text-xs md:text-sm font-bold text-[#e86f50] mb-6 md:mb-8 animate-fade-in-up opacity-0">
+              <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
               Nueva Colección 2024
             </div>
             
-            <h1 className="font-display text-5xl md:text-7xl font-bold text-[#2d2926] mb-6 animate-fade-in-up opacity-0 stagger-1 leading-tight">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-[#2d2926] mb-4 md:mb-6 animate-fade-in-up opacity-0 stagger-1 leading-tight">
               Tus próximos lentes favoritos,{' '}
               <span className="text-[#e86f50]">pruébatelos ahora.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-[#5c5552] mb-10 leading-relaxed animate-fade-in-up opacity-0 stagger-2">
+            <p className="text-base md:text-lg lg:text-xl text-[#5c5552] mb-6 md:mb-10 leading-relaxed animate-fade-in-up opacity-0 stagger-2 px-2 md:px-0">
               Explora nuestra colección premium y usa nuestra tecnología de realidad aumentada para ver exactamente cómo te quedan. Sin moverte de casa.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up opacity-0 stagger-3">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center animate-fade-in-up opacity-0 stagger-3">
               <Link 
                 href="#catalog"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e86f50] px-8 py-4 text-base font-bold text-white shadow-xl shadow-[#e86f50]/20 hover:shadow-[#e86f50]/30 hover:bg-[#d85f40] transition-all"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#e86f50] px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-bold text-white shadow-xl shadow-[#e86f50]/20 hover:shadow-[#e86f50]/30 hover:bg-[#d85f40] transition-all"
               >
                 Ver Colección
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="catalog" className="container mx-auto px-4 py-16 md:py-24">
-        <div className="mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <section id="catalog" className="container mx-auto px-3 md:px-4 py-12 md:py-16 lg:py-24">
+        <div className="mb-10 md:mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 md:gap-4">
           <div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#2d2926] mb-2">Nuestros Lentes</h2>
-            <p className="text-[#8a8582] text-lg">Diseñados para tu estilo y confort</p>
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-[#2d2926] mb-1 md:mb-2">Nuestros Lentes</h2>
+            <p className="text-[#8a8582] text-base md:text-lg">Diseñados para tu estilo y confort</p>
           </div>
-          <Link href="/" className="inline-flex items-center gap-2 text-[#e86f50] font-bold hover:gap-3 transition-all">
+          <Link href="/" className="inline-flex items-center gap-2 text-[#e86f50] font-bold text-sm md:text-base hover:gap-3 transition-all">
             Ver colección completa
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
         {error && (
-          <div className="mb-10 rounded-2xl bg-[#fef6f4] p-5 text-sm text-[#c44d2e] border border-[#fedfd7]">
+          <div className="mb-8 md:mb-10 rounded-2xl bg-[#fef6f4] p-4 md:p-5 text-sm text-[#c44d2e] border border-[#fedfd7]">
             ⚠️ {error} (Mostrando datos de demostración)
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:gap-10">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8 md:gap-8">
           {products.map((product: any, index: number) => (
             <div key={product.id} className="animate-fade-in-up opacity-0" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
               <ProductCard product={product} />
@@ -108,24 +108,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-[#f4ede8] py-20 mt-12">
-        <div className="container mx-auto px-4">
+      <section className="bg-[#f4ede8] py-12 md:py-20 mt-8 md:mt-12">
+        <div className="container mx-auto px-3 md:px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#2d2926] mb-4">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-[#2d2926] mb-3 md:mb-4">
               ¿Necesitas ayuda para elegir?
             </h2>
-            <p className="text-[#5c5552] text-lg mb-8">
+            <p className="text-[#5c5552] text-base md:text-lg mb-6 md:mb-8">
              Nuestro equipo está listo para ayudarte a encontrar los lentes perfectos para tu rostro y estilo.
             </p>
             <Link 
               href="/"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-[#e86f50] px-8 py-3 text-base font-bold text-[#e86f50] hover:bg-[#e86f50] hover:text-white transition-all"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-[#e86f50] px-6 py-3 md:px-8 md:py-3 text-sm md:text-base font-bold text-[#e86f50] hover:bg-[#e86f50] hover:text-white transition-all"
             >
               Chatear con nosotros
             </Link>
           </div>
         </div>
       </section>
+
+      <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden pointer-events-none">
+        <Link 
+          href={products.length > 0 ? `/product/${products[0].id}` : "/"}
+          className="pointer-events-auto flex items-center justify-center gap-2 w-full py-4 px-6 bg-[#e86f50] text-white font-bold rounded-2xl shadow-2xl shadow-[#e86f50]/30 hover:bg-[#d85f40] active:scale-95 transition-all"
+        >
+          <Camera className="h-5 w-5" />
+          Pruébatelos en 3D
+        </Link>
+      </div>
     </div>
   );
 }
