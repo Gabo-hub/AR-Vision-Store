@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useEffect, useState, MutableRefObject } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Glasses } from "@/types/glasses";
 import GlassesRenderer from "./GlassesRenderer";
 import * as THREE from 'three';
@@ -20,48 +20,10 @@ interface FaceTrackerProps {
     debugOffsets?: { x: number, y: number, z: number, scale: number };
 }
 
-// Definición de la clase KalmanFilter
-class KalmanFilter {
-    private R: number; // Ruido de medición
-    private Q: number; // Ruido del proceso
-    private A: number; // Factor de estado
-    private B: number; // Control de entrada
-    private C: number; // Factor de medición
-    private cov: number; // Covarianza
-    private x: number; // Estado estimado
-
-    constructor(R: number, Q: number, A: number, B: number, C: number) {
-        this.R = R;
-        this.Q = Q;
-        this.A = A;
-        this.B = B;
-        this.C = C;
-        this.cov = NaN;
-        this.x = NaN;
-    }
-
-    filter(z: number, u: number = 0): number {
-        if (isNaN(this.x)) {
-            this.x = (1 / this.C) * z;
-            this.cov = (1 / this.C) * this.R * (1 / this.C);
-        } else {
-            // Predicción
-            const predX = this.A * this.x + this.B * u;
-            const predCov = (this.A * this.cov) * this.A + this.R;
-
-            // Actualización
-            const K = predCov * this.C * (1 / ((this.C * predCov * this.C) + this.Q));
-            this.x = predX + K * (z - (this.C * predX));
-            this.cov = predCov - (K * this.C * predCov);
-        }
-
-        return this.x;
-    }
-}
-
 export default function FaceTracker({ product, onLoad, onFaceDetected, onError, debugOffsets }: FaceTrackerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [faceData, setFaceData] = useState<any>(null);
+    const faceDataRef = useRef<{ x: number; y: number; z: number }[] | null>(null);
+    const faceDetectedRef = useRef(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
 
     useEffect(() => {
@@ -87,56 +49,31 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
-                    refineLandmarks: true,
-                    minDetectionConfidence: 0.8,
-                    minTrackingConfidence: 0.8,
+                    refineLandmarks: false,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
                 });
-
-                let kalmanFilters: { x: KalmanFilter, y: KalmanFilter, z: KalmanFilter }[] = [];
-
-                const smoothLandmarks = (landmarks: { x: number; y: number; z: number }[]): { x: number; y: number; z: number }[] => {
-                    // Asegurarse de que kalmanFilters tenga la misma longitud que landmarks
-                    if (kalmanFilters.length !== landmarks.length) {
-                        kalmanFilters = Array.from({ length: landmarks.length }, () => ({
-                            x: new KalmanFilter(0.8, 1, 1, 0, 1),
-                            y: new KalmanFilter(0.8, 1, 1, 0, 1),
-                            z: new KalmanFilter(0.8, 1, 1, 0, 1) // Reduce R noise filter slightly for faster settling
-                        }));
-                    }
-
-                    return landmarks.map((point: { x: number; y: number; z: number }, index: number) => {
-                        const filter = kalmanFilters[index];
-                        if (!filter) {
-                            return point; // Devuelve el punto original si no hay filtro
-                        }
-                        return {
-                            x: filter.x.filter(point.x),
-                            y: filter.y.filter(point.y),
-                            z: filter.z.filter(point.z),
-                        };
-                    });
-                };
 
                 faceMesh.onResults((results: { multiFaceLandmarks?: { x: number; y: number; z: number }[][] }) => {
                     if (isUnmounted) return;
                     const hasFace = !!(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0);
                     if (hasFace && results.multiFaceLandmarks) {
-                        const smoothedData = smoothLandmarks(results.multiFaceLandmarks[0]);
-                        setFaceData(smoothedData);
+                        faceDataRef.current = results.multiFaceLandmarks[0];
                     }
-                    onFaceDetected(Boolean(hasFace));
+                    if (hasFace !== faceDetectedRef.current) {
+                        faceDetectedRef.current = hasFace;
+                        onFaceDetected(hasFace);
+                    }
                 });
 
-
-                // Comprobación de Contexto Seguro
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     throw new Error("La cámara solo está disponible en contextos seguros.");
                 }
 
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
                         facingMode: 'user'
                     },
                     audio: false,
@@ -150,8 +87,8 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
                             if (isUnmounted) return;
                             await videoRef.current?.play();
                             setIsCameraReady(true);
-                            onLoad(); // Notify that the engine is ready
-                            processFrame(); // Start loop
+                            onLoad();
+                            processFrame();
                         } catch (playErr) {
                             console.error("Error al iniciar reproducción:", playErr);
                             if (!isUnmounted) onError((playErr as Error).message || "No se pudo acceder a la cámara.");
@@ -164,15 +101,17 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
             }
         };
 
-        const processFrame = async () => {
-            if (isUnmounted) return; // Prevent abort if WASM is closing
+        let isProcessing = false;
 
-            if (videoRef.current && faceMesh && videoRef.current.readyState >= 2) {
-                try {
-                    await faceMesh.send({ image: videoRef.current });
-                } catch (e) {
-                    console.error("Error al procesar el fotograma:", e);
-                }
+        /** Non-blocking inference loop: fires detection without awaiting, preventing pipeline stalls on mobile. */
+        const processFrame = () => {
+            if (isUnmounted) return;
+
+            if (videoRef.current && faceMesh && videoRef.current.readyState >= 2 && !isProcessing) {
+                isProcessing = true;
+                faceMesh.send({ image: videoRef.current })
+                    .then(() => { isProcessing = false; })
+                    .catch(() => { isProcessing = false; });
             }
 
             if (!isUnmounted) {
@@ -199,7 +138,6 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
 
     return (
         <div className="relative h-full w-full">
-            {/* Video Stream (Renderizado de forma Nativa por HTML y CSS para mejor rendimiento y colores puros) */}
             <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full object-cover z-0"
@@ -211,20 +149,20 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
                 style={{ transform: 'scaleX(-1)' }}
             />
 
-            {/* Escena 3D de React Three Fiber */}
+            {/* 3D Scene */}
             <div className="absolute inset-0 z-10 pointer-events-none">
                 <Canvas
                     camera={{ fov: 45, near: 0.1, far: 1000, position: [0, 0, 5] }}
-                    gl={{ antialias: true, alpha: true, sortObjects: true }}
+                    gl={{ antialias: false, alpha: true, sortObjects: true, powerPreference: 'high-performance' }}
+                    dpr={[1, 1.5]}
                 >
                     <ambientLight intensity={0.7} />
                     <pointLight position={[10, 10, 10]} intensity={1} />
 
-                    {/* Los Lentes */}
-                    {faceData && videoRef.current && (
+                    {videoRef.current && (
                         <GlassesRenderer
                             product={product}
-                            faceData={faceData}
+                            faceDataRef={faceDataRef}
                             debugOffsets={debugOffsets}
                             video={videoRef.current}
                         />

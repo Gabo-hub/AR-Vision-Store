@@ -6,7 +6,6 @@ import { Camera, X, Box, Info, Settings2 } from "lucide-react";
 import { Glasses } from "@/types/glasses";
 import FaceTracker from "./FaceTracker";
 import { cn, getProxyMediaUrl } from "@/lib/utils";
-import OpenCVFaceTracker from "./OpenCVFaceTracker";
 
 interface ARTryOnProps {
     product: Glasses;
