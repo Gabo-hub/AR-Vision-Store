@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, MutableRefObject } from "react";
+import { useRef, useEffect, useState, MutableRefObject, memo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Glasses } from "@/types/glasses";
 import GlassesRenderer from "./GlassesRenderer";
@@ -13,18 +13,33 @@ declare global {
 }
 
 interface FaceTrackerProps {
-    product: Glasses;
+    productRef: MutableRefObject<Glasses>;
     onLoad: () => void;
     onFaceDetected: (detected: boolean) => void;
     onError: (msg: string) => void;
-    debugOffsets?: { x: number, y: number, z: number, scale: number };
 }
 
-export default function FaceTracker({ product, onLoad, onFaceDetected, onError, debugOffsets }: FaceTrackerProps) {
+const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetected, onError }: FaceTrackerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const faceDataRef = useRef<{ x: number; y: number; z: number }[] | null>(null);
     const faceDetectedRef = useRef(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
+    const debugRef = useRef<Record<string, string | number> | null>(null);
+    const [debugText, setDebugText] = useState('');
+
+    // Índices de landmarks y sus colores de depuración
+    /*
+    const TRACKED_LANDMARKS: { idx: number; color: string; label: string }[] = [
+        { idx: 33,  color: '#FF4444', label: 'L-Eye' },   // rojo
+        { idx: 263, color: '#FF4444', label: 'R-Eye' },   // rojo
+        { idx: 168, color: '#44FF44', label: 'Nose' },    // verde
+        { idx: 10,  color: '#4488FF', label: 'Head' },    // azul
+        { idx: 152, color: '#4488FF', label: 'Chin' },    // azul
+        { idx: 454, color: '#FFDD44', label: 'TmpL' },    // amarillo
+        { idx: 234, color: '#FFDD44', label: 'TmpR' },    // amarillo
+    ];
+    */
 
     useEffect(() => {
         let faceMesh: any = null;
@@ -56,10 +71,12 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
 
                 faceMesh.onResults((results: { multiFaceLandmarks?: { x: number; y: number; z: number }[][] }) => {
                     if (isUnmounted) return;
+                    
                     const hasFace = !!(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0);
                     if (hasFace && results.multiFaceLandmarks) {
                         faceDataRef.current = results.multiFaceLandmarks[0];
                     }
+
                     if (hasFace !== faceDetectedRef.current) {
                         faceDetectedRef.current = hasFace;
                         onFaceDetected(hasFace);
@@ -103,7 +120,7 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
 
         let isProcessing = false;
 
-        /** Non-blocking inference loop: fires detection without awaiting, preventing pipeline stalls on mobile. */
+        /** Bucle de inferencia no bloqueante: dispara la detección sin esperar, evitando atascos en el pipeline. */
         const processFrame = () => {
             if (isUnmounted) return;
 
@@ -149,7 +166,16 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
                 style={{ transform: 'scaleX(-1)' }}
             />
 
-            {/* 3D Scene */}
+            {/* Overlay de Canvas 2D para puntos de depuración (Opcional) */}
+            {/* 
+            <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full object-cover z-5 pointer-events-none"
+                style={{ transform: 'scaleX(-1)' }}
+            />
+            */}
+
+            {/* Escena 3D */}
             <div className="absolute inset-0 z-10 pointer-events-none">
                 <Canvas
                     camera={{ fov: 45, near: 0.1, far: 1000, position: [0, 0, 5] }}
@@ -161,14 +187,38 @@ export default function FaceTracker({ product, onLoad, onFaceDetected, onError, 
 
                     {videoRef.current && (
                         <GlassesRenderer
-                            product={product}
+                            productRef={productRef}
                             faceDataRef={faceDataRef}
-                            debugOffsets={debugOffsets}
                             video={videoRef.current}
+                            debugRef={debugRef}
                         />
                     )}
                 </Canvas>
             </div>
+
+            {/* HUD de Depuración (Comentado para producción) */}
+            {/* <DebugHUD debugRef={debugRef} /> */}
+        </div>
+    );
+});
+
+/** Pequeño componente que observa debugRef y renderiza el HUD fuera del Canvas. */
+function DebugHUD({ debugRef }: { debugRef: React.MutableRefObject<Record<string, string | number> | null> }) {
+    const [text, setText] = useState('');
+    useEffect(() => {
+        const id = setInterval(() => {
+            if (debugRef.current) {
+                setText(JSON.stringify(debugRef.current));
+            }
+        }, 250);
+        return () => clearInterval(id);
+    }, [debugRef]);
+    if (!text) return null;
+    return (
+        <div className="absolute bottom-2 left-2 z-30 bg-black/70 text-[9px] text-green-400 font-mono px-2 py-1 rounded max-w-[90%] break-all pointer-events-none">
+            {text}
         </div>
     );
 }
+
+export default FaceTracker;

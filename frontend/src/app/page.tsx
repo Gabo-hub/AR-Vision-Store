@@ -47,18 +47,17 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white py-20 lg:py-32">
-        <div className="absolute inset-x-0 top-[-10%] h-[1000px] w-full bg-[radial-gradient(100%_50%_at_50%_0%,rgba(37,99,235,0.05)_0,rgba(37,99,235,0)_50%,rgba(37,99,235,0)_100%)]" />
+      <section className="relative overflow-hidden bg-background py-20 lg:py-32 border-b-2 border-border">
         <div className="container relative mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-600 mb-6">
+          <div className="inline-flex items-center gap-2 bg-primary px-4 py-1.5 text-sm font-black uppercase text-white mb-6 border-2 border-border shadow-[var(--shadow-solid-sm)]">
             <Sparkles className="h-4 w-4" />
             Nueva Colección 2024
           </div>
-          <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-gray-900 md:text-7xl">
+          <h1 className="mb-6 text-5xl font-black uppercase tracking-tighter text-foreground md:text-7xl leading-none">
             Tus próximos lentes favoritos, <br />
-            <span className="text-blue-600">pruébatelos ahora.</span>
+            <span className="text-primary border-b-8 border-primary">pruébatelos ahora.</span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600 mb-10">
+          <p className="mx-auto max-w-2xl text-lg text-foreground font-medium mb-10 mt-8">
             Explora nuestra colección premium y usa nuestra tecnología de realidad aumentada para ver exactamente cómo te quedan desde la comodidad de tu casa.
           </p>
         </div>
@@ -66,12 +65,12 @@ export default async function HomePage() {
 
       {/* Catálogo Section */}
       <section className="container mx-auto px-4 py-12 md:py-24">
-        <div className="mb-12 flex items-end justify-between">
+        <div className="mb-12 flex items-end justify-between border-b-2 border-border pb-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">Nuestros Lentes</h2>
-            <p className="text-gray-500">Diseñados para tu estilo y confort</p>
+            <h2 className="text-4xl font-black uppercase text-foreground">Nuestros Lentes</h2>
+            <p className="text-foreground font-medium mt-2">Diseñados para tu estilo y confort</p>
           </div>
-          <div className="hidden sm:block text-sm font-medium text-blue-600 hover:underline cursor-pointer">
+          <div className="hidden sm:block text-sm font-black uppercase text-primary hover:underline cursor-pointer border-2 border-border px-4 py-2 hover:bg-zinc-100 transition-colors shadow-[var(--shadow-solid-sm)]">
             Ver colección completa →
           </div>
         </div>

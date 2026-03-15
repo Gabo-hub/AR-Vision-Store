@@ -1,6 +1,26 @@
 import { Glasses } from "@/types/glasses";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.20:8000/api";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.20:8000/api";
+
+export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+    const headers = new Headers(options.headers || {});
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    if (!(options.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json');
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+    });
+
+    return response;
+};
 
 export async function getProducts(): Promise<Glasses[]> {
     const response = await fetch(`${API_BASE_URL}/products/`, {
@@ -24,4 +44,12 @@ export async function getProduct(id: string | number): Promise<Glasses> {
     }
 
     return response.json();
+}
+
+export function getProxyMediaUrl(url: string) {
+    if (!url) return url;
+    if (url.includes(':8000/media/')) {
+        return url.replace(/http:\/\/[^\/]+:8000\/media\//, '/django-media/');
+    }
+    return url;
 }
