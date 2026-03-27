@@ -232,30 +232,30 @@ export default function ProductAdminForm() {
                                         <div>
                                             <label className="flex items-center justify-between text-xs font-black uppercase mb-1">
                                                 <span>Escala General</span>
-                                                <input type="number" step="0.01" min="0.001" max="150" value={Number(scale).toString()} onChange={(e) => setScale(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
+                                                <input type="number" step="0.001" min="0.001" max="150" value={Number(scale).toString()} onChange={(e) => setScale(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
                                             </label>
-                                            <input type="range" min="0.001" max="150" step="0.01" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-full accent-primary" />
+                                            <input type="range" min="0.001" max="150" step="0.001" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-full accent-primary" />
                                         </div>
                                         <div>
                                             <label className="flex items-center justify-between text-xs font-black uppercase mb-1">
                                                 <span>Posición X (Lados)</span>
-                                                <input type="number" step="0.01" value={Number(offsetX).toString()} onChange={(e) => setOffsetX(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
+                                                <input type="number" step="0.001" value={Number(offsetX).toString()} onChange={(e) => setOffsetX(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
                                             </label>
-                                            <input type="range" min="-1" max="1" step="0.01" value={offsetX} onChange={(e) => setOffsetX(parseFloat(e.target.value))} className="w-full accent-primary" />
+                                            <input type="range" min="-1" max="1" step="0.001" value={offsetX} onChange={(e) => setOffsetX(parseFloat(e.target.value))} className="w-full accent-primary" />
                                         </div>
                                         <div>
                                             <label className="flex items-center justify-between text-xs font-black uppercase mb-1">
                                                 <span>Posición Y (Altura)</span>
-                                                <input type="number" step="0.01" value={Number(offsetY).toString()} onChange={(e) => setOffsetY(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
+                                                <input type="number" step="0.001" value={Number(offsetY).toString()} onChange={(e) => setOffsetY(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
                                             </label>
-                                            <input type="range" min="-1" max="1" step="0.01" value={offsetY} onChange={(e) => setOffsetY(parseFloat(e.target.value))} className="w-full accent-primary" />
+                                            <input type="range" min="-1" max="1" step="0.001" value={offsetY} onChange={(e) => setOffsetY(parseFloat(e.target.value))} className="w-full accent-primary" />
                                         </div>
                                         <div>
                                             <label className="flex items-center justify-between text-xs font-black uppercase mb-1">
                                                 <span>Posición Z (Profundidad)</span>
-                                                <input type="number" step="0.01" value={Number(offsetZ).toString()} onChange={(e) => setOffsetZ(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
+                                                <input type="number" step="0.001" value={Number(offsetZ).toString()} onChange={(e) => setOffsetZ(parseFloat(e.target.value) || 0)} className="text-primary font-bold border-b-2 border-primary bg-transparent text-right outline-none w-16" />
                                             </label>
-                                            <input type="range" min="-5" max="5" step="0.1" value={offsetZ} onChange={(e) => setOffsetZ(parseFloat(e.target.value))} className="w-full accent-primary" />
+                                            <input type="range" min="-5" max="5" step="0.001" value={offsetZ} onChange={(e) => setOffsetZ(parseFloat(e.target.value))} className="w-full accent-primary" />
                                         </div>
                                     </div>
                                 </div>

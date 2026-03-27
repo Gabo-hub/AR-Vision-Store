@@ -47,7 +47,7 @@ class OneEuroFilter {
         const edAlpha = this.alpha(this.dCutoff, dt);
         const dxHat = edAlpha * dx + (1 - edAlpha) * this.dxPrev;
 
-    // Calibración adaptativa: movimiento lento → corte bajo (más suavizado)
+        // Calibración adaptativa: movimiento lento → corte bajo (más suavizado)
         const cutoff = this.minCutoff + this.beta * Math.abs(dxHat);
         const a = this.alpha(cutoff, dt);
         const xHat = a * x + (1 - a) * this.xPrev;
@@ -100,12 +100,12 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
     const ipdSamplesRef = useRef<number[]>([]);
     const lockedIPDRef = useRef<number>(0);
 
-    /** Invisible depth-only material that hides geometry behind the head silhouette. */
+    /** Material invisible de solo profundidad que oculta la geometría detrás de la silueta de la cabeza. */
     const headOccluderMaterial = useMemo(() => {
         return new THREE.MeshBasicMaterial({
-            colorWrite: false,
+            colorWrite: false, // Invisible, solo depth
             depthWrite: true,
-            side: THREE.FrontSide,
+            side: THREE.DoubleSide, // Doble cara para oclusión realista en giros
         });
     }, []);
 
@@ -120,8 +120,17 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
 
     useEffect(() => {
         if (scene) {
-            // Calcular el ancho nativo del modelo desde el bounding box
-            const bbox = new THREE.Box3().setFromObject(scene);
+            // Clonar la escena para calcular el Bounding Box en un estado limpio (escala 1,1,1).
+            // Esto evita que useGLTF guarde en caché una escena ya escalada de sesiones anteriores,
+            // lo que causaba que el 'ancho original' encogiera y la escala AR se rompiera progresivamente.
+            const cleanClone = scene.clone();
+            cleanClone.position.set(0, 0, 0);
+            cleanClone.rotation.set(0, 0, 0);
+            cleanClone.scale.set(1, 1, 1);
+            cleanClone.updateMatrixWorld(true);
+
+            // Calcular el ancho nativo desde el clon reseteado
+            const bbox = new THREE.Box3().setFromObject(cleanClone);
             const size = new THREE.Vector3();
             bbox.getSize(size);
             modelWidthRef.current = Math.max(size.x, 0.001); // Evitar división por cero
@@ -202,7 +211,7 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
         _faceQuaternion.multiply(_flipY); // Voltear 180° en Y para video en espejo
 
         // IPD en tiempo real — escala instantánea, sin retraso de filtrado
-        const rawIPD = Math.abs(_vRightEye.x - _vLeftEye.x);
+        const rawIPD = _vRightEye.distanceTo(_vLeftEye);
 
         // Mantener bloqueo como referencia solo para diagnósticos de HUD
         if (ipdSamplesRef.current.length < 60) {
@@ -267,19 +276,19 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
         if (templeRightRef.current) templeRightRef.current.position.set(_vTempleRight.x, _vTempleRight.y, _vTempleRight.z);
         */
 
-        // Oclusor de cabeza: cubo dimensionado a la distancia entre ojos (rawIPD).
-        // Proporciona una zona de oclusión predecible detrás del puente de la nariz.
+        // Oclusor de cabeza: cubo dimensionado dinámicamente según la distancia entre ojos (rawIPD).
+        // Proporciona una zona de oclusión realista detrás del puente de la nariz.
         if (headOccluderRef.current) {
-            const eyeDistance = rawIPD; 
+            const eyeDistance = rawIPD;
 
-            const headWidth = eyeDistance * 1.7;
-            const headHeight = eyeDistance * 2;
-            const headDepth = eyeDistance * 2;
+            const headWidth = eyeDistance * 1.8;  // +10% para cubrir orejas/cabello
+            const headHeight = eyeDistance * 2.2;
+            const headDepth = eyeDistance * 1.5 + Math.abs(z) * 0.5; // Dinámico según profundidad
 
-            // Posición: centrada en la cara, desplazada detrás del plano frontal
+            // Posición: centrada en la cara, ajustada verticalmente y desplazada dinámicamente
             const occluderX = groupX;
-            const occluderY = groupY;
-            const occluderZ = groupZ - 0.9; // Desplazado hacia atrás para evitar lentes
+            const occluderY = groupY + 0.1 * eyeDistance;
+            const occluderZ = groupZ - headDepth;
 
             headOccluderRef.current.position.set(occluderX, occluderY, occluderZ);
             headOccluderRef.current.quaternion.copy(_faceQuaternion);
