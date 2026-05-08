@@ -1,0 +1,669 @@
+/**
+ * AR Try-On — WordPress Plugin Styles
+ *
+ * All selectors are prefixed with .ar-tryon- to avoid conflicts with
+ * WordPress themes and other plugins.
+ *
+ * @version 2.1.0
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  VARIABLES
+ * ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+    --ar-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    --ar-radius: 12px;
+    --ar-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --ar-green: #22c55e;
+    --ar-blue: #3b82f6;
+    --ar-amber: #f59e0b;
+    --ar-rose: #f43f5e;
+    --ar-blue-light: #60a5fa;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  WRAPPER — Main container set by the shortcode
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    overflow: hidden;
+    border-radius: var(--ar-radius);
+    background: #f9fafb;
+    font-family: var(--ar-font);
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.ar-tryon-wrapper *,
+.ar-tryon-wrapper *::before,
+.ar-tryon-wrapper *::after {
+    box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  IDLE VIEW — Thumbnail + Activate Button
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-idle {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+}
+
+.ar-tryon-thumbnail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ar-tryon-btn-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.05);
+    opacity: 0;
+    transition: opacity var(--ar-transition);
+}
+
+.ar-tryon-idle:hover .ar-tryon-btn-overlay {
+    opacity: 1;
+}
+
+.ar-tryon-activate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: #111111;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--ar-font);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all var(--ar-transition);
+    line-height: 1;
+}
+
+.ar-tryon-activate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.ar-tryon-activate-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.ar-tryon-activate-btn svg {
+    flex-shrink: 0;
+    transition: transform var(--ar-transition);
+}
+
+.ar-tryon-activate-btn:hover svg {
+    transform: scale(1.15);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  ACTIVE VIEW — Camera + 3D overlay
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-active {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    overflow: hidden;
+    background: #000;
+}
+
+/* Video — fullscreen behind everything */
+.ar-tryon-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    transform: scaleX(-1);
+    /* Mirror for selfie camera */
+}
+
+/* Three.js canvas container — overlays on top of video */
+.ar-tryon-canvas-ctn {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.ar-tryon-canvas-ctn canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  TOP CONTROLS BAR
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-controls {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 30;
+}
+
+.ar-tryon-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Status badge */
+.ar-tryon-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.ar-tryon-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ar-amber);
+    flex-shrink: 0;
+}
+
+.ar-tryon-status-dot.is-loading {
+    background: var(--ar-amber);
+    animation: ar-pulse 1.2s ease-in-out infinite;
+}
+
+.ar-tryon-status-dot.is-searching {
+    background: var(--ar-blue);
+    animation: ar-pulse 1.2s ease-in-out infinite;
+}
+
+.ar-tryon-status-dot.is-tracking {
+    background: var(--ar-green);
+    animation: none;
+}
+
+.ar-tryon-status-dot.is-error {
+    background: var(--ar-rose);
+    animation: none;
+}
+
+.ar-tryon-status-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+}
+
+/* Close / Switch buttons */
+.ar-tryon-close-btn,
+.ar-tryon-switch-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: background var(--ar-transition);
+    padding: 0;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.ar-tryon-close-btn:hover,
+.ar-tryon-switch-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.ar-tryon-close-btn svg,
+.ar-tryon-switch-btn svg {
+    display: block;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  BOTTOM ACTION BAR (Capture button)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-bottom-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ar-tryon-capture-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    cursor: pointer;
+    transition: all var(--ar-transition);
+    padding: 0;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.ar-tryon-capture-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #fff;
+    transform: scale(1.08);
+}
+
+.ar-tryon-capture-btn:active {
+    transform: scale(0.95);
+}
+
+.ar-tryon-capture-btn svg {
+    display: block;
+}
+
+/* Flash effect */
+.ar-tryon-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    z-index: 50;
+    animation: ar-flash 0.4s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes ar-flash {
+    0% {
+        opacity: 0.9;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  PHOTO PREVIEW OVERLAY
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-photo-preview {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.ar-tryon-photo-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    max-width: 85%;
+    height: 100%;
+}
+
+.ar-tryon-photo-img {
+    max-width: 100%;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.ar-tryon-photo-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.ar-tryon-photo-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--ar-font);
+    cursor: pointer;
+    transition: all var(--ar-transition);
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.ar-tryon-photo-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ar-tryon-photo-action-btn svg {
+    flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  OVERLAYS — Loading, Searching, Error
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    text-align: center;
+    color: #fff;
+    padding: 24px;
+}
+
+/* Loading overlay */
+.ar-tryon-loading {
+    background: rgba(0, 0, 0, 0.6);
+    transition: opacity 0.5s ease;
+}
+
+.ar-tryon-loading svg {
+    color: var(--ar-blue-light);
+    stroke: var(--ar-blue-light);
+}
+
+.ar-tryon-ov-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: #fff;
+}
+
+.ar-tryon-ov-subtitle {
+    font-size: 10px;
+    color: #9ca3af;
+    margin: 8px 0 0;
+}
+
+/* Progress bar */
+.ar-tryon-progress-bar {
+    width: 180px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 14px;
+}
+
+.ar-tryon-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--ar-blue), var(--ar-blue-light));
+    border-radius: 999px;
+    transition: width 0.4s ease-out;
+}
+
+/* Searching overlay */
+.ar-tryon-searching {
+    background: transparent;
+    pointer-events: none;
+}
+
+.ar-tryon-face-frame {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 48px;
+    animation: ar-pulse 1.5s ease-in-out infinite;
+}
+
+.ar-tryon-face-frame p {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 16px;
+    border-radius: 999px;
+    margin: 0;
+}
+
+/* Error overlay */
+.ar-tryon-error {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.ar-tryon-error-icon {
+    margin-bottom: 16px;
+}
+
+.ar-tryon-error-icon svg {
+    color: var(--ar-rose);
+    stroke: var(--ar-rose);
+}
+
+.ar-tryon-error-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.ar-tryon-error-msg {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0 0 24px;
+    max-width: 300px;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.ar-tryon-error-retry-btn {
+    display: inline-block;
+    padding: 10px 28px;
+    border-radius: 999px;
+    border: none;
+    background: var(--ar-blue);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--ar-font);
+    cursor: pointer;
+    transition: all var(--ar-transition);
+    margin-bottom: 8px;
+}
+
+.ar-tryon-error-retry-btn:hover {
+    background: var(--ar-blue-light);
+    transform: translateY(-1px);
+}
+
+.ar-tryon-error-close-btn {
+    display: inline-block;
+    padding: 8px 24px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    font-family: var(--ar-font);
+    cursor: pointer;
+    transition: background var(--ar-transition);
+}
+
+.ar-tryon-error-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  ANIMATIONS
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes ar-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.ar-tryon-bounce {
+    animation: ar-bounce 1s ease infinite;
+}
+
+@keyframes ar-bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  RESPONSIVE
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+    .ar-tryon-activate-btn {
+        padding: 12px 24px;
+        font-size: 13px;
+    }
+
+    .ar-tryon-controls {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+    }
+
+    .ar-tryon-status-badge {
+        padding: 4px 10px;
+    }
+
+    .ar-tryon-status-text {
+        font-size: 9px;
+    }
+
+    .ar-tryon-face-frame {
+        padding: 32px;
+    }
+
+    .ar-tryon-bottom-bar {
+        bottom: 16px;
+    }
+
+    .ar-tryon-capture-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .ar-tryon-photo-action-btn {
+        padding: 8px 18px;
+        font-size: 13px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ *  MODAL MODE (Button injected into WooCommerce form)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+.ar-tryon-mode-modal {
+    min-height: auto;
+    height: auto !important;
+    /* Override inline height */
+    background: transparent;
+    border-radius: 0;
+    margin-top: 15px;
+    display: block;
+    width: 100%;
+    clear: both;
+}
+
+/* Hide thumbnail in modal mode */
+.ar-tryon-mode-modal .ar-tryon-thumbnail {
+    display: none;
+}
+
+/* Make overlay statically positioned so it flows like a button */
+.ar-tryon-mode-modal .ar-tryon-btn-overlay {
+    position: static;
+    opacity: 1;
+    background: transparent;
+}
+
+/* Match WooCommerce button styles generally */
+.ar-tryon-mode-modal .ar-tryon-activate-btn {
+    width: 100%;
+    justify-content: center;
+    border-radius: 4px;
+    box-shadow: none;
+    background-color: #111111;
+    border: none;
+    color: #fff;
+    padding: 12px 24px;
+}
+
+.ar-tryon-mode-modal .ar-tryon-activate-btn:hover {
+    background-color: color-mix(in srgb, #111111 85%, transparent);
+    transform: none;
+}
+
+/* When activated, pop out to fullscreen or modal */
+.ar-tryon-mode-modal.is-active {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    background: #000;
+    margin: 0;
+    border-radius: 0;
+}
+
+/* On Desktop: Restrict camera size to a responsive landscape modal to avoid cropping and giant faces */
+@media (min-width: 768px) {
+    .ar-tryon-mode-modal.is-active {
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%);
+        height: 75vh !important;
+        max-height: 600px !important;
+        width: 90vw !important;
+        max-width: 1000px !important;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 100vmax rgba(0, 0, 0, 0.85);
+        overflow: hidden;
+    }
+}

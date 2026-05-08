@@ -1,6 +1,6 @@
 import { Glasses } from "@/types/glasses";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.20:8000/api";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;

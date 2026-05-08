@@ -9,6 +9,9 @@ export interface Glasses {
   offset_x: number;
   offset_y: number;
   offset_z: number;
+  rotation_x?: number;
+  rotation_y?: number;
+  rotation_z?: number;
   created_at: string;
   updated_at: string;
 }

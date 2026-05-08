@@ -100,6 +100,14 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
     const ipdSamplesRef = useRef<number[]>([]);
     const lockedIPDRef = useRef<number>(0);
 
+    // Filtros OneEuro para suavizar posición y escala
+    const filtersRef = useRef({
+        posX: new OneEuroFilter(1.5, 0.007, 1.0),
+        posY: new OneEuroFilter(1.5, 0.007, 1.0),
+        posZ: new OneEuroFilter(1.5, 0.007, 1.0),
+        scale: new OneEuroFilter(0.5, 0.001, 1.0),
+    });
+
     /** Material invisible de solo profundidad que oculta la geometría detrás de la silueta de la cabeza. */
     const headOccluderMaterial = useMemo(() => {
         return new THREE.MeshBasicMaterial({
@@ -148,7 +156,15 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
     useFrame((state) => {
         const { viewport } = state;
         const faceData = faceDataRef.current;
-        if (!groupRef.current || !faceData || !video) return;
+
+        if (!groupRef.current || !faceData || !video) {
+            if (groupRef.current) groupRef.current.visible = false;
+            return;
+        }
+
+        if (groupRef.current && !groupRef.current.visible) {
+            groupRef.current.visible = true;
+        }
 
         // MediaPipe landmark indices — use RAW values for instant tracking (zero lag)
         const noseBridge = faceData[168];
@@ -175,9 +191,14 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
         }
 
         // Position: Map normalized MediaPipe coords to 3D viewport space
-        const x = (0.5 - noseBridge.x) * scaleX;
-        const y = (0.5 - noseBridge.y) * scaleY;
-        const z = -noseBridge.z * scaleX;
+        const rawX = (0.5 - noseBridge.x) * scaleX;
+        const rawY = (0.5 - noseBridge.y) * scaleY;
+        const rawZ = -noseBridge.z * scaleX;
+
+        // Aplicar One Euro Filter para seguimiento de posición suave
+        const x = filtersRef.current.posX.filter(rawX, now);
+        const y = filtersRef.current.posY.filter(rawY, now);
+        const z = filtersRef.current.posZ.filter(rawZ, now);
 
         // Rotación: Construir base ortonormal a partir de landmarks faciales
         const toViewSpace = (p: { x: number; y: number; z: number }, vec: THREE.Vector3) => vec.set(
@@ -210,7 +231,7 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
         _faceQuaternion.setFromRotationMatrix(_rotationMatrix);
         _faceQuaternion.multiply(_flipY); // Voltear 180° en Y para video en espejo
 
-        // IPD en tiempo real — escala instantánea, sin retraso de filtrado
+        // IPD en tiempo real
         const rawIPD = _vRightEye.distanceTo(_vLeftEye);
 
         // Mantener bloqueo como referencia solo para diagnósticos de HUD
@@ -219,8 +240,8 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
             lockedIPDRef.current = ipdSamplesRef.current.reduce((a, b) => a + b, 0) / ipdSamplesRef.current.length;
         }
 
-        // USAR rawIPD en tiempo real para la escala — sin retraso
-        const baseDistance = rawIPD;
+        // Aplicar filtro a IPD para un escalado suave
+        const baseDistance = filtersRef.current.scale.filter(rawIPD, now);
         const scaleFactor = productRef.current.scale_factor || 2.5;
         const modelWidth = modelWidthRef.current;
 
@@ -260,12 +281,18 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
         groupRef.current.scale.set(adjustedScale, adjustedScale, adjustedScale);
         groupRef.current.quaternion.copy(_faceQuaternion);
 
-        // Aplicar offset Z dinámico al subgrupo del modelo
+        // Aplicar offset Z dinámico y rotaciones al subgrupo del modelo
         if (modelGroupRef.current) {
             modelGroupRef.current.position.set(
                 productRef.current.offset_x || 0,
                 productRef.current.offset_y || 0,
                 dynamicOffsetZ
+            );
+            // Aplicar rotaciones opcionales (si existen en el backend/modelo)
+            modelGroupRef.current.rotation.set(
+                (productRef.current.rotation_x || 0) * Math.PI / 180,
+                (productRef.current.rotation_y || 0) * Math.PI / 180,
+                (productRef.current.rotation_z || 0) * Math.PI / 180
             );
         }
 
@@ -324,7 +351,7 @@ export default function GlassesRenderer({ productRef, faceDataRef, video, debugR
             </mesh>
             */}
 
-            <group ref={groupRef} renderOrder={2}>
+            <group ref={groupRef} renderOrder={2} visible={false}>
                 <group ref={modelGroupRef} renderOrder={4}>
                     <primitive
                         object={scene}

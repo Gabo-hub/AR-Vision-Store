@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, MutableRefObject, memo } from "react";
+import { useRef, useEffect, useState, MutableRefObject, memo, forwardRef, useImperativeHandle } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Glasses } from "@/types/glasses";
 import GlassesRenderer from "./GlassesRenderer";
@@ -19,7 +19,13 @@ interface FaceTrackerProps {
     onError: (msg: string) => void;
 }
 
-const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetected, onError }: FaceTrackerProps) {
+export interface FaceTrackerRef {
+    switchCamera: () => void;
+    capturePhoto: () => string | null;
+}
+
+const FaceTracker = memo(forwardRef<FaceTrackerRef, FaceTrackerProps>(function FaceTracker({ productRef, onLoad, onFaceDetected, onError }, ref) {
+    const containerRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const faceDataRef = useRef<{ x: number; y: number; z: number }[] | null>(null);
@@ -41,24 +47,76 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
     ];
     */
 
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+    const streamRef = useRef<MediaStream | null>(null);
+    const faceMeshRef = useRef<any>(null);
+
+    useImperativeHandle(ref, () => ({
+        switchCamera: () => {
+            setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+        },
+        capturePhoto: () => {
+            if (!videoRef.current || !containerRef.current) return null;
+
+            const cw = containerRef.current.clientWidth;
+            const ch = containerRef.current.clientHeight;
+            const canvas = document.createElement('canvas');
+            canvas.width = cw;
+            canvas.height = ch;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+
+            const vw = videoRef.current.videoWidth;
+            const vh = videoRef.current.videoHeight;
+
+            const videoRatio = vw / vh;
+            const canvasRatio = cw / ch;
+
+            let drawW = vw;
+            let drawH = vh;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (videoRatio > canvasRatio) {
+                drawW = vh * canvasRatio;
+                offsetX = (vw - drawW) / 2;
+            } else {
+                drawH = vw / canvasRatio;
+                offsetY = (vh - drawH) / 2;
+            }
+
+            ctx.save();
+            if (facingMode === 'user') {
+                ctx.translate(cw, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(videoRef.current, offsetX, offsetY, drawW, drawH, 0, 0, cw, ch);
+            ctx.restore();
+
+            const glCanvas = containerRef.current.querySelector('canvas');
+            if (glCanvas) {
+                ctx.drawImage(glCanvas, 0, 0, cw, ch);
+            }
+
+            return canvas.toDataURL('image/png');
+        }
+    }));
+
+    // FaceMesh Initialization & Process Loop
     useEffect(() => {
-        let faceMesh: any = null;
         let animationFrameId: number;
-        let stream: MediaStream | null = null;
         let isUnmounted = false;
+        let isProcessing = false;
 
-        const initialize = async () => {
-            if (!videoRef.current || isUnmounted) return;
-
+        const initializeFaceMesh = async () => {
             try {
                 // @ts-ignore
                 const FaceMeshConstructor = window.FaceMesh;
-
                 if (!FaceMeshConstructor) {
                     throw new Error("No se pudo cargar el constructor de FaceMesh desde el CDN.");
                 }
 
-                faceMesh = new FaceMeshConstructor({
+                const faceMesh = new FaceMeshConstructor({
                     locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
                 });
 
@@ -75,6 +133,8 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
                     const hasFace = !!(results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0);
                     if (hasFace && results.multiFaceLandmarks) {
                         faceDataRef.current = results.multiFaceLandmarks[0];
+                    } else {
+                        faceDataRef.current = null;
                     }
 
                     if (hasFace !== faceDetectedRef.current) {
@@ -83,50 +143,22 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
                     }
                 });
 
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("La cámara solo está disponible en contextos seguros.");
-                }
+                faceMeshRef.current = faceMesh;
+                onLoad(); // Señalamos que el motor de IA está listo (la cámara puede tardar un poco más)
+                processFrame();
 
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        facingMode: 'user'
-                    },
-                    audio: false,
-                });
-
-                if (videoRef.current && !isUnmounted) {
-                    videoRef.current.srcObject = stream;
-
-                    videoRef.current.onloadedmetadata = async () => {
-                        try {
-                            if (isUnmounted) return;
-                            await videoRef.current?.play();
-                            setIsCameraReady(true);
-                            onLoad();
-                            processFrame();
-                        } catch (playErr) {
-                            console.error("Error al iniciar reproducción:", playErr);
-                            if (!isUnmounted) onError((playErr as Error).message || "No se pudo acceder a la cámara.");
-                        }
-                    };
-                }
             } catch (error) {
-                console.error("Error durante la inicialización:", error);
-                if (!isUnmounted) onError((error as Error).message || "No se pudo acceder a la cámara.");
+                console.error("Error inicializando FaceMesh:", error);
+                if (!isUnmounted) onError((error as Error).message || "Error al cargar el motor de IA.");
             }
         };
 
-        let isProcessing = false;
-
-        /** Bucle de inferencia no bloqueante: dispara la detección sin esperar, evitando atascos en el pipeline. */
         const processFrame = () => {
             if (isUnmounted) return;
 
-            if (videoRef.current && faceMesh && videoRef.current.readyState >= 2 && !isProcessing) {
+            if (videoRef.current && faceMeshRef.current && videoRef.current.readyState >= 2 && !isProcessing) {
                 isProcessing = true;
-                faceMesh.send({ image: videoRef.current })
+                faceMeshRef.current.send({ image: videoRef.current })
                     .then(() => { isProcessing = false; })
                     .catch(() => { isProcessing = false; });
             }
@@ -136,25 +168,83 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
             }
         };
 
-        initialize();
+        initializeFaceMesh();
 
         return () => {
             isUnmounted = true;
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-            if (faceMesh) {
-                try {
-                    faceMesh.close();
-                } catch (e) { }
+            if (faceMeshRef.current) {
+                try { faceMeshRef.current.close(); } catch (e) {}
             }
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+        };
+    }, [onLoad, onFaceDetected, onError]);
+
+    // Camera Initialization
+    useEffect(() => {
+        let isUnmounted = false;
+
+        const initCamera = async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (!isUnmounted) onError("La cámara solo está disponible en contextos seguros.");
+                return;
+            }
+
+            try {
+                if (streamRef.current) {
+                    streamRef.current.getTracks().forEach(track => track.stop());
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: facingMode
+                    },
+                    audio: false,
+                });
+
+                if (isUnmounted) return;
+                streamRef.current = stream;
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.onloadedmetadata = async () => {
+                        try {
+                            if (isUnmounted) return;
+                            await videoRef.current?.play();
+                            setIsCameraReady(true);
+                        } catch (playErr) {
+                            console.error("Error al iniciar reproducción:", playErr);
+                            if (!isUnmounted) onError((playErr as Error).message || "No se pudo acceder a la cámara.");
+                        }
+                    };
+                }
+            } catch (error) {
+                console.error("Error al acceder a la cámara:", error);
+                if (!isUnmounted) onError((error as Error).message || "No se pudo acceder a la cámara.");
+            }
+        };
+
+        initCamera();
+
+        return () => {
+            isUnmounted = true;
+            // No detenemos el stream aquí porque queremos mantenerlo vivo a menos que el componente completo se desmonte o cambie facingMode.
+            // Lo detendremos en el desmontaje final.
+        };
+    }, [facingMode, onError]);
+
+    // Limpieza final del stream
+    useEffect(() => {
+        return () => {
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
             }
         };
     }, []);
 
     return (
-        <div className="relative h-full w-full">
+        <div className="relative h-full w-full" ref={containerRef}>
             <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full object-cover z-0"
@@ -163,7 +253,7 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
                 muted
                 // @ts-ignore
                 webkit-playsinline="true"
-                style={{ transform: 'scaleX(-1)' }}
+                style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
             />
 
             {/* Overlay de Canvas 2D para puntos de depuración (Opcional) */}
@@ -179,7 +269,7 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
             <div className="absolute inset-0 z-10 pointer-events-none">
                 <Canvas
                     camera={{ fov: 45, near: 0.1, far: 1000, position: [0, 0, 5] }}
-                    gl={{ antialias: false, alpha: true, sortObjects: true, powerPreference: 'high-performance' }}
+                    gl={{ antialias: false, alpha: true, sortObjects: true, powerPreference: 'high-performance', preserveDrawingBuffer: true }}
                     dpr={[1, 1.5]}
                 >
                     <ambientLight intensity={0.7} />
@@ -200,25 +290,6 @@ const FaceTracker = memo(function FaceTracker({ productRef, onLoad, onFaceDetect
             {/* <DebugHUD debugRef={debugRef} /> */}
         </div>
     );
-});
-
-/** Pequeño componente que observa debugRef y renderiza el HUD fuera del Canvas. */
-function DebugHUD({ debugRef }: { debugRef: React.MutableRefObject<Record<string, string | number> | null> }) {
-    const [text, setText] = useState('');
-    useEffect(() => {
-        const id = setInterval(() => {
-            if (debugRef.current) {
-                setText(JSON.stringify(debugRef.current));
-            }
-        }, 250);
-        return () => clearInterval(id);
-    }, [debugRef]);
-    if (!text) return null;
-    return (
-        <div className="absolute bottom-2 left-2 z-30 bg-black/70 text-[9px] text-green-400 font-mono px-2 py-1 rounded max-w-[90%] break-all pointer-events-none">
-            {text}
-        </div>
-    );
-}
+}));
 
 export default FaceTracker;
