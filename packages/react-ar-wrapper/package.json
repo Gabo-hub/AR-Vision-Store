@@ -1,0 +1,29 @@
+{
+  "name": "@ar-project/react-wrapper",
+  "version": "1.0.0",
+  "main": "dist/react-ar-wrapper.umd.js",
+  "module": "dist/react-ar-wrapper.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/react-ar-wrapper.es.js",
+      "require": "./dist/react-ar-wrapper.umd.js"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "three": "^0.170.0"
+  },
+  "dependencies": {
+    "@ar-project/engine-core": "file:../ar-engine-core"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.11"
+  }
+}

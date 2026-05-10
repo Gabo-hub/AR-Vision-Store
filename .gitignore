@@ -4,3 +4,42 @@
 .DS_Store
 *.swp
 Thumbs.db
+
+# Node / npm
+node_modules/
+*.log
+build.log
+.npm/
+.eslintcache
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+db.sqlite3
+
+# Next.js
+.next/
+out/
+.vercel
+*.tsbuildinfo
+
+# Build outputs
+dist/
+build/
+*.tgz
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
